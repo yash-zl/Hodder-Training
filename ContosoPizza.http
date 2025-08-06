@@ -20,18 +20,18 @@ POST {{ContosoPizza_HostAddress}}/pizza/
 Content-Type: application/json
 
 {
-    "name": "Hawaii",
-    "isGlutenFree": false
+    "Name": "Hawaii",
+    "IsGlutenFree": false
 }
 
 ###
-PUT {{ContosoPizza_HostAddress}}/pizza/3
+PUT {{ContosoPizza_HostAddress}}/pizza/7
 Content-Type: application/json
 
 {
-    "id": 3,
-    "name": "Hawaiian",
-    "isGlutenFree": false
+    "id": 7,
+    "name": "Italian",
+    "isGlutenFree": true
 }
 
 ###
@@ -39,10 +39,92 @@ GET {{ContosoPizza_HostAddress}}/pizza/3
 Accept: application/json
 
 ###
-DELETE {{ContosoPizza_HostAddress}}/pizza/3
+DELETE {{ContosoPizza_HostAddress}}/pizza/6
 
 ###
-GET {{ContosoPizza_HostAddress}}/pizza/
+GET {{ContosoPizza_HostAddress}}/pizza/10
+Accept: application/json
+
+##################
+##################
+
+GET {{ContosoPizza_HostAddress}}/customer/
 Accept: application/json
 
 ###
+GET {{ContosoPizza_HostAddress}}/customer/1
+Accept: application/json
+
+###
+GET {{ContosoPizza_HostAddress}}/customer/5
+Accept: application/json
+
+###
+POST {{ContosoPizza_HostAddress}}/customer/
+Content-Type: application/json
+
+{
+    "Name": "John Doe"
+}
+
+###
+PUT {{ContosoPizza_HostAddress}}/customer/5
+Content-Type: application/json
+
+{
+    "id": 5,
+    "name": "Hawaiian"
+}
+
+###
+GET {{ContosoPizza_HostAddress}}/customer/5
+Accept: application/json
+
+###
+DELETE {{ContosoPizza_HostAddress}}/customer/6
+
+###
+GET {{ContosoPizza_HostAddress}}/customer/10
+Accept: application/json
+
+##################
+##################
+
+GET {{ContosoPizza_HostAddress}}/order/
+Accept: application/json
+
+###
+GET {{ContosoPizza_HostAddress}}/order/1
+Accept: application/json
+
+###
+GET {{ContosoPizza_HostAddress}}/order/5
+Accept: application/json
+
+###
+POST {{ContosoPizza_HostAddress}}/order/
+Content-Type: application/json
+
+{
+    "PizzaId" : 2,
+    "CustomerId" : 2
+}
+
+###
+PUT {{ContosoPizza_HostAddress}}/order/3
+Content-Type: application/json
+
+{
+    "name": "Hawaiian"
+}
+
+###
+GET {{ContosoPizza_HostAddress}}/order/3
+Accept: application/json
+
+###
+DELETE {{ContosoPizza_HostAddress}}/order/3
+
+###
+GET {{ContosoPizza_HostAddress}}/order/
+Accept: application/json

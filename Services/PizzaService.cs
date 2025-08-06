@@ -1,45 +1,41 @@
 using ContosoPizza.Models;
+using ContosoPizza.Repositories;
+using Microsoft.AspNetCore.DataProtection.Repositories;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ContosoPizza.Services;
 
-public static class PizzaService
+public class PizzaService
 {
-    static List<Pizza> Pizzas { get; }
-    static int nextId = 3;
-    static PizzaService()
+    static int nextId = 0;
+
+    private readonly PizzaRepository _repository;
+
+
+    public PizzaService(PizzaRepository repository)
     {
-        Pizzas = new List<Pizza>
-        {
-            new Pizza { Id = 1, Name = "Classic Italian", IsGlutenFree = false },
-            new Pizza { Id = 2, Name = "Veggie", IsGlutenFree = true }
-        };
+        _repository = repository;
     }
+    public List<Pizza> GetAll() => _repository.GetAllPizzaAsync().Result.ToList();
 
-    public static List<Pizza> GetAll() => Pizzas;
+    public Pizza? Get(int id) => _repository.GetPizzaByIdAsync(id).Result;
 
-    public static Pizza? Get(int id) => Pizzas.FirstOrDefault(p => p.Id == id);
-
-    public static void Add(Pizza pizza)
+    public async Task Add(Pizza pizza)
     {
         pizza.Id = nextId++;
-        Pizzas.Add(pizza);
+        Console.WriteLine($"Adding pizza with ID: {pizza.Id}");  
+        await _repository.AddPizzaAsync(pizza);
     }
 
-    public static void Delete(int id)
+    public void Delete(int id)
     {
-        var pizza = Get(id);
-        if (pizza is null)
-            return;
-
-        Pizzas.Remove(pizza);
+        _repository.DeletePizzaAsync(id).Wait();
     }
 
-    public static void Update(Pizza pizza)
+    public void Update(Pizza pizza)
     {
-        var index = Pizzas.FindIndex(p => p.Id == pizza.Id);
-        if (index == -1)
-            return;
-
-        Pizzas[index] = pizza;
+        _repository.UpdatePizzaAsync(pizza).Wait();
     }
 }

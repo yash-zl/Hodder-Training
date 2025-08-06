@@ -1,6 +1,17 @@
+using ContosoPizza.Data;
+using ContosoPizza.Repositories;
+using ContosoPizza.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSingleton<DapperContext>();
+builder.Services.AddScoped<PizzaRepository>();
+builder.Services.AddScoped<PizzaService>();
+builder.Services.AddScoped<CustomerRepository>();
+builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<OrderRepository>();
+builder.Services.AddScoped<OrderService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -10,16 +21,19 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+
+// Map a basic test endpoint
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/", () => "Dapper CRUD API is running...");
 
 app.Run();

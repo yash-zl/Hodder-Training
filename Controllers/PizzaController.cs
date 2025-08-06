@@ -8,57 +8,58 @@ namespace ContosoPizza.Controllers;
 [Route("[controller]")]
 public class PizzaController : ControllerBase
 {
-    public PizzaController()
+
+    private readonly PizzaService _pizzaService;
+    public PizzaController(PizzaService pizzaService)
     {
+        _pizzaService = pizzaService;
     }
 
     [HttpGet]
     public ActionResult<List<Pizza>> GetAll() =>
-        PizzaService.GetAll();
+        _pizzaService.GetAll();
 
     [HttpGet("{id}")]
     public ActionResult<Pizza> Get(int id)
     {
-        var pizza = PizzaService.Get(id);
-
-        if (pizza == null)
-            return NotFound();
-
-        return pizza;
+        return _pizzaService.Get(id);
     }
 
     [HttpPost]
     public IActionResult Create(Pizza pizza)
     {
-        PizzaService.Add(pizza);
+        // Console.WriteLine($"----------------------------------------------------------------------------------------------------Creating pizza with ID: {pizza}");
+        _pizzaService.Add(pizza);
         return CreatedAtAction(nameof(Get), new { id = pizza.Id }, pizza);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, Pizza pizza)
+    public IActionResult Update(Pizza pizza)
     {
-        if (id != pizza.Id)
-            return BadRequest();
-
-        var existingPizza = PizzaService.Get(id);
-        if (existingPizza is null)
-            return NotFound();
-
-        PizzaService.Update(pizza);
-
+        try
+        {
+            _pizzaService.Update(pizza);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating pizza: {ex.Message}");
+        }
+        _pizzaService.Update(pizza);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var pizza = PizzaService.Get(id);
+        var pizza = _pizzaService.Get(id);
 
         if (pizza is null)
             return NotFound();
 
-        PizzaService.Delete(id);
+        _pizzaService.Delete(id);
 
         return NoContent();
     }
+    
+    
 }
