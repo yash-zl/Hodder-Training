@@ -105,6 +105,48 @@ public class OrderRepository
             return true;
         }
     }
+
+    public async Task<IEnumerable<Order>> GetOrdersByDateTimePlaced(bool ascending)
+    {
+        var query = "SELECT * FROM Orders ORDER BY DateTimePlaced " + (ascending ? "ASC" : "DESC");
+
+        using (var connection = _context.CreateConnection())
+        {
+            return await connection.QueryAsync<Order>(query);
+        }
+    }
+
+    public async Task<IEnumerable<Order>> GetOrdersByTotalPrice(bool ascending)
+    {
+        var query = "SELECT * FROM Orders ORDER BY TotalPrice " + (ascending ? "ASC" : "DESC");
+
+        using (var connection = _context.CreateConnection())
+        {
+            return await connection.QueryAsync<Order>(query);
+        }
+    }
+
+    public async Task<IEnumerable<Order>> GetOrdersByCustomerId(int customerId)
+    {
+        var query = "SELECT * FROM Orders WHERE CustomerId = @CustomerId";
+
+        using (var connection = _context.CreateConnection())
+        {
+            return await connection.QueryAsync<Order>(query, new { CustomerId = customerId });
+        }
+    }
+
+    public async Task<IEnumerable<OrderItem>> GetOrdersByCustomerId(int orderId)
+    {
+        var query = "SELECT * FROM OrderItems WHERE OrderId = @OrderId";
+
+        using (var connection = _context.CreateConnection())
+        {
+            return await connection.QueryAsync<Order>(query, new { OrderId = orderId });
+        }
+    }
 }
+
+
 
 

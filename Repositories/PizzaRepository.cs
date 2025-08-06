@@ -111,6 +111,26 @@ public class PizzaRepository
             return true;
         }
     }
+
+    public async Task<IEnumerable<Pizza>> GetPizzasByPrice(bool ascending)
+    {
+        var query = ascending ? "SELECT * FROM Pizza ORDER BY Price ASC" : "SELECT * FROM Pizza ORDER BY Price DESC";
+
+        using (var connection = _context.CreateConnection())
+        {
+            return await connection.QueryAsync<Pizza>(query);
+        }
+    }
+
+    public async Task<IEnumerable<Pizza>> GetVegetarianPizzas()
+    {
+        var query = "SELECT * FROM Pizza WHERE IsVegetarian = true";
+
+        using (var connection = _context.CreateConnection())
+        {
+            return await connection.QueryAsync<Pizza>(query);
+        }
+    }
 }
 
 
