@@ -1,8 +1,10 @@
 using ContosoPizza.Data;
 using ContosoPizza.Models;
 using Dapper;
+using System.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
+using System.Runtime.InteropServices;
 
 
 namespace ContosoPizza.Repositories;
@@ -33,21 +35,85 @@ public class OrderRepository
 
         using (var connection = _context.CreateConnection())
         {
-            return await connection.QueryFirstOrDefaultAsync<Order>(query, new { Id = id });
+            var order = await connection.QueryFirstOrDefaultAsync<Order>(query, new { Id = id });
+            return order;
+        }
+    }
+
+    public async Task<Order?> GetOrdersByUserNameAsync(string userName)
+    {
+        var query = "SELECT * FROM Orders WHERE UserName = @UserName";
+
+        using (var connection = _context.CreateConnection())
+        {
+            return await connection.QueryFirstOrDefaultAsync<Order>(query, new { UserName = userName });
         }
     }
 
     public async Task AddOrderAsync(Order order)
     {
 
-        Console.WriteLine($"Adding order with {order.Id + " " + order.PizzaId + " " + order.CustomerId + " " + order.DateTimePlaced}");
-        var query = "INSERT INTO Orders (id, pizza_id, customer_id, datetime_placed) VALUES (@Id, @PizzaId, @CustomerId, @DateTimePlaced);";
+        order.print();
 
-        using (var connection = _context.CreateConnection())
+        try
         {
-            var res = await connection.ExecuteAsync(query, order);
+            var query = "AddOrder";
+            var parameters = new DynamicParameters();
+            parameters.Add("username", order.UserName);
+            parameters.Add("timedate", null);
+            parameters.Add("ordertype", order.OrderType);
 
-            Console.WriteLine(res);
+            var orderitems = new DataTable();
+            orderitems.Columns.Add("pizzaid", typeof(int));
+            orderitems.Columns.Add("quantity", typeof(int));
+            orderitems.Columns.Add("pizzatotalprice", typeof(int));
+            foreach (var OrderItem in order.OrderItems)
+            {
+                var pizzaquantityquery = "GetPriceForPizzaQuantity";
+                var pizzaquantityparams = new DynamicParameters();
+                pizzaquantityparams.Add("pizzaid", OrderItem.PizzaId, dbType: DbType.Int32);
+                pizzaquantityparams.Add("quantity", OrderItem.Quantity, dbType: DbType.Int32);
+                pizzaquantityparams.Add("pizzaquantitytotalprice", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+
+
+                using (var connection = _context.CreateConnection())
+                {
+                    await connection.ExecuteAsync(pizzaquantityquery, pizzaquantityparams, commandType: System.Data.CommandType.StoredProcedure);
+
+                }
+
+                OrderItem.PizzaTotalPrice = pizzaquantityparams.Get<int>("pizzaquantitytotalprice");
+                // Consol/e.WriteLine($"PizzaId: {OrderItem.PizzaId}, Quantity: {OrderItem.Quantity}, TotalPrice: {OrderItem.PizzaTotalPrice}");
+                orderitems.Rows.Add(OrderItem.PizzaId, OrderItem.Quantity, OrderItem.PizzaTotalPrice);
+            }
+
+            foreach (DataRow item in orderitems.Rows)
+            {
+                Console.WriteLine($"PizzaId: {item["pizzaid"]}, Quantity: {item["quantity"]}, TotalPrice: {item["pizzatotalprice"]}");
+            }
+
+            parameters.Add("OrderItems", orderitems.AsTableValuedParameter("orderitemstype"));
+            printparams(parameters);
+            using (var connection = _context.CreateConnection())
+            {
+                var res = await connection.ExecuteAsync(query, parameters, commandType: System.Data.CommandType.StoredProcedure);
+
+                Console.WriteLine(res);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding order: {ex.Message}");
+            // Handle the exception as needed
+        }
+    }
+
+    public void printparams(DynamicParameters parameters)
+    {
+        foreach (var param in parameters.ParameterNames)
+        {
+            Console.WriteLine($"Parameter: {param}, Value: {parameters.Get<object>(param)}");
         }
     }
 
@@ -80,17 +146,6 @@ public class OrderRepository
             await connection.ExecuteAsync(query, new { Id = id });
         }
     }
-
-    public async Task<Order?> GetOrderByNameAsync(string name)
-    {
-        var query = "SELECT * FROM Orders WHERE Name = @Name";
-
-        using (var connection = _context.CreateConnection())
-        {
-            return await connection.QueryFirstOrDefaultAsync<Order>(query, new { Name = name });
-        }
-    }
-
     public async Task<Boolean> IsIdPresent(int id)
     {
 
@@ -105,6 +160,23 @@ public class OrderRepository
             return true;
         }
     }
+
+    public async Task<IEnumerable<Order>> GetOrders(int pageNumber, bool asc, bool byprice, int pageSize)
+    {
+        var query = "GetOrdersByPage";
+        var parameters = new DynamicParameters();
+        parameters.Add("pagenumber", pageNumber);
+        parameters.Add("pagesize", pageSize);
+        parameters.Add("asc", asc);
+        parameters.Add("byprice", byprice);
+        using (var connection = _context.CreateConnection())
+        {
+            var Orders = await connection.QueryAsync<Order>(query, parameters, commandType: System.Data.CommandType.StoredProcedure);
+            return Orders;
+        }
+    }
+
+    
 }
 
 

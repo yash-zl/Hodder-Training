@@ -20,13 +20,26 @@ public class OrderService
     }
     public List<Order> GetAll() => _repository.GetAllOrdersAsync().Result.ToList();
 
-    public Order? Get(int id) => _repository.GetOrderByIdAsync(id).Result;
+    public Order? GetByOrderId(int id) => _repository.GetOrderByIdAsync(id).Result;
+
+    public async Task<IEnumerable<Order>> GetOrdersByUserName(string username)
+    {
+        var orders = _repository.GetOrdersByUserNameAsync(username).Result;
+        return orders != null ? new List<Order> { orders } : new List<Order>();
+    }
+
+    public async Task<IEnumerable<Order>> GetOrdersAsync(int pageNumber, int pageSize = 10, bool asc = true, bool byprice = true)
+    {
+        var orders = _repository.GetOrders(pageNumber, asc, byprice, pageSize).Result;
+        return orders.ToList();
+    }
+
+
 
     public async Task Add(Order order)
     {
         order.Id = nextId++;
-        order.DateTimePlaced = DateTime.UtcNow; // Set the current time as the order placed time
-        Console.WriteLine($"Adding order with ID: {order.Id}");  
+        Console.WriteLine($"Adding order with ID: {order.Id}");
         await _repository.AddOrderAsync(order);
     }
 

@@ -1,3 +1,4 @@
+using System.Data;
 using ContosoPizza.Data;
 using ContosoPizza.Models;
 using Dapper;
@@ -38,32 +39,52 @@ public class PizzaRepository
 
     public async Task AddPizzaAsync(Pizza pizza)
     {
-        var query = "INSERT INTO Pizza (Id, Name, IsGlutenFree) VALUES (@Id, @Name, @IsGlutenFree);";
-
-        using (var connection = _context.CreateConnection())
+        try
         {
-            pizza.Id = await connection.QuerySingleAsync<int>(query, pizza);
+            var query = "addpizza";
+            Console.WriteLine($"Adding pizza with ID: {pizza.Id}, Name: {pizza.Name}, Price: {pizza.Price}, IsVeg: {pizza.IsVeg}, Kcal: {pizza.Kcal}");
+            // Console.WriteLine($"Adding pizza with ID: {pizza.Id, pizza.Name, pizza.Price, pizza.IsVeg, pizza.Kcal}");
+            var parameters = new DynamicParameters();
+            parameters.Add("name", pizza.Name, dbType: DbType.String);
+            parameters.Add("price", pizza.Price, dbType: DbType.Int32);
+            parameters.Add("kcal", pizza.Kcal, dbType: DbType.Int32);
+            parameters.Add("isveg", pizza.IsVeg, dbType: DbType.Boolean);
+            Console.WriteLine($"Adding pizza with params: {parameters.Get<string>("name")}, {parameters.Get<bool>("isveg")}, {parameters.Get<int>("price")}, {parameters.Get<int>("kcal")}");
+
+            using (var connection = _context.CreateConnection())
+            {
+                connection.Execute(query, parameters, commandType: System.Data.CommandType.StoredProcedure);
+            }
+        }
+        catch(
+            Exception ex
+        )
+        {
+            Console.WriteLine($"Error adding pizza: {ex.Message}");
         }
     }
 
     public async Task UpdatePizzaAsync(Pizza pizza)
     {
-        var query = "UPDATE Pizza SET Name = @Name, IsGlutenFree = @IsGlutenFree WHERE Id = @id";
+        var query = "UpdatePizza";
+        var parameters = new DynamicParameters();
+        parameters.Add("id", pizza.Id);
+        parameters.Add("name", pizza.Name);
+        parameters.Add("isveg", pizza.IsVeg);
+        parameters.Add("price", pizza.Price);
+        parameters.Add("kcal", pizza.Kcal);
 
         using (var connection = _context.CreateConnection())
         {
-            Object res = null;
             try
             {
-                res = await connection.ExecuteAsync(query, pizza);
+                await connection.ExecuteAsync(query, parameters, commandType: System.Data.CommandType.StoredProcedure);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating pizza: {ex.Message}");
                 // Re-throw the exception to be handled by the caller
             }
-
-            Console.WriteLine("res @res");
         }
     }
 
@@ -84,16 +105,6 @@ public class PizzaRepository
         using (var connection = _context.CreateConnection())
         {
             return await connection.QueryFirstOrDefaultAsync<Pizza>(query, new { Name = name });
-        }
-    }
-
-    public async Task<IEnumerable<Pizza>> GetPizzaByGlutenFreeAsync(bool isGlutenFree)
-    {
-        var query = "SELECT * FROM Pizza WHERE IsGlutenFree = @IsGlutenFree";
-
-        using (var connection = _context.CreateConnection())
-        {
-            return await connection.QueryAsync<Pizza>(query, new { IsGlutenFree = isGlutenFree });
         }
     }
 

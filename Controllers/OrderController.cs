@@ -20,17 +20,19 @@ public class OrderController : ControllerBase
         _orderService.GetAll();
 
     [HttpGet("{id}")]
-    public ActionResult<Order> Get(int id)
+    public ActionResult<Order?> GetByOrderId(int id)
     {
-        return _orderService.Get(id);
+        return _orderService.GetByOrderId(id);
     }
+
+    [HttpGet("")]
 
     [HttpPost]
     public IActionResult Create(Order order)
     {
         // Console.WriteLine($"----------------------------------------------------------------------------------------------------Creating order with ID: {order}");
         _orderService.Add(order);
-        return CreatedAtAction(nameof(Get), new { id = order.Id }, order);
+        return CreatedAtAction(nameof(GetByOrderId), new { id = order.Id }, order);
     }
 
     [HttpPut("{id}")]
@@ -51,7 +53,7 @@ public class OrderController : ControllerBase
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var order = _orderService.Get(id);
+        var order = _orderService.GetByOrderId(id);
 
         if (order is null)
             return NotFound();

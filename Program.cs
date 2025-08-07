@@ -8,8 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<PizzaRepository>();
 builder.Services.AddScoped<PizzaService>();
-builder.Services.AddScoped<CustomerRepository>();
-builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<OrderRepository>();
 builder.Services.AddScoped<OrderService>();
 
