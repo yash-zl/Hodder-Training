@@ -18,8 +18,20 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularDev", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200")   // <-- exact origin of your Angular app
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+              // .AllowCredentials(); // only if you need cookies/auth — see note below
+    });
+});
+
 var app = builder.Build();
 
+app.UseCors("AllowAngularDev");
 // Configure the HTTP request pipeline.
 
 app.UseSwagger();

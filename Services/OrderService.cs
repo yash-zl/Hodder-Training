@@ -34,7 +34,11 @@ public class OrderService
         return orders.ToList();
     }
 
-
+    public async Task<int> GetTotalPages(int pageSize = 10, bool asc = true, bool byprice = true)
+    {
+        Console.WriteLine($"Calculating total pages with pageSize: {pageSize}, asc: {asc}, byprice: {byprice}");
+        return await _repository.GetTotalPagesAsync(asc, byprice, pageSize);
+    }
 
     public async Task Add(Order order)
     {

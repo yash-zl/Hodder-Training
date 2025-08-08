@@ -163,20 +163,46 @@ public class OrderRepository
 
     public async Task<IEnumerable<Order>> GetOrders(int pageNumber, bool asc, bool byprice, int pageSize)
     {
-        var query = "GetOrdersByPage";
+        var query = "getorders";
         var parameters = new DynamicParameters();
         parameters.Add("pagenumber", pageNumber);
         parameters.Add("pagesize", pageSize);
         parameters.Add("asc", asc);
         parameters.Add("byprice", byprice);
+
         using (var connection = _context.CreateConnection())
         {
             var Orders = await connection.QueryAsync<Order>(query, parameters, commandType: System.Data.CommandType.StoredProcedure);
+            Console.WriteLine($"--Fetched orders for page {pageNumber} with page size {pageSize}, asc: {asc}, byprice: {byprice}");
+
+            Orders.ToList().ForEach(e => { Console.WriteLine(e.Id); });
             return Orders;
+
+
         }
     }
 
-    
+    public async Task<int> GetTotalPagesAsync(bool asc, bool byprice, int pageSize)
+    {
+        try
+        {
+            Console.WriteLine($"--Calculating total pages with asc: {asc}, byprice: {byprice}, pageSize: {pageSize}");
+            var query = "select count(*) from Orders";
+
+            using (var connection = _context.CreateConnection())
+            {
+                var totalCount = await connection.ExecuteScalarAsync<int>(query);
+                return (int)Math.Ceiling((double)totalCount / pageSize);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error calculating total pages: {ex.Message}");
+            return 0; // or handle the error as needed
+        }
+    }
+
+
 }
 
 

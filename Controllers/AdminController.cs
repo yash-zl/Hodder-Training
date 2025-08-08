@@ -19,6 +19,9 @@ public class AdminController : ControllerBase
         _pizzaService = pizzaService;
     }
 
+
+
+
     [HttpGet]
     public ActionResult<AdminHomeData> GetAll() =>
         new AdminHomeData
@@ -29,12 +32,21 @@ public class AdminController : ControllerBase
         };
 
     [HttpGet("allorders")]
-    public async Task<ActionResult<List<Order>>> ViewOrders(int pageNumber = 1, int pageSize = 10, bool asc = true, bool byprice = true)
+    public async Task<ActionResult<GetOrdersResponse>> ViewOrders(int pageNumber, int pageSize, bool asc, bool byprice)
     {
         var orders = await _orderService.GetOrdersAsync(pageNumber, pageSize, asc, byprice);
-        return orders.ToList();
+        var totalPages = await _orderService.GetTotalPages(pageSize, asc, byprice);
+        Console.WriteLine($"Total Pages: {totalPages}");
+        return new GetOrdersResponse { Orders = orders.ToList(), TotalPages = totalPages };
     }
-    
+
+    [HttpPost("addorder")]
+    public async Task<IActionResult> Create(Order order)
+    {
+        // Console.WriteLine($"----------------------------------------------------------------------------------------------------Creating order with ID: {order}");
+        await _orderService.Add(order);
+        return CreatedAtAction(order.Id.ToString(), order);
+    }
     
     
 }

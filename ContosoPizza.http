@@ -147,3 +147,7 @@ Content-Type: application/json
         }
     ]
 }
+
+###
+GET {{ContosoPizza_HostAddress}}/user/admin/allorders/?byprice=true&asc=true
+Accept: application/json
